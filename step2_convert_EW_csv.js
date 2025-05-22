@@ -3,7 +3,7 @@ const path = require('path');
 const csv = require('fast-csv');
 
 const ELEMENT_NAME_TRANSFER = {
-  'BODY': 'wiz-slide',
+  BODY: 'wiz-slide',
   'FUSION-GROUP': 'wiz-container',
   'FUSION-IMAGE': 'wiz-image',
   'FUSION-TEXT': 'wiz-text',
@@ -12,7 +12,7 @@ const ELEMENT_NAME_TRANSFER = {
   'FUSION-CUSTOM-POPUP-OVERLAY': 'wiz-container',
   'FUSION-SHAPE': 'wiz-container',
   'FUSION-ACTION': 'wiz-action',
-  'FUSION-VIDEO-PLAYER': 'wiz-video'
+  'FUSION-VIDEO-PLAYER': 'wiz-video',
 };
 const WIZ_IMAGE = 'wiz-image';
 const WIZ_ACTION = 'wiz-action';
@@ -20,7 +20,6 @@ const WIZ_TEXT = 'wiz-text';
 const WIZ_POPUP = 'wiz-popup';
 const FUSION_POPUP_OVERLAY = 'FUSION-CUSTOM-POPUP-OVERLAY';
 const adv_slides_data = [];
-
 
 function convertCSVFiles(csv_files, index) {
   if (index >= csv_files.length) {
@@ -48,7 +47,7 @@ function convertCSVFiles(csv_files, index) {
           attributes: row.attributes || '',
           style: row.style || '',
           htmlContent: row.htmlContent || '',
-        }
+        };
       }
     })
     .on('end', () => {
@@ -59,7 +58,11 @@ function convertCSVFiles(csv_files, index) {
 function generateEWCsvFile(fusionElements, popupElements, csv_files, index) {
   const ew_csv_file = csv_files[index]['ew_csv_file'];
   const ewElements = [];
-  for (let fusionEle_i = 0; fusionEle_i < fusionElements.length; fusionEle_i++) {
+  for (
+    let fusionEle_i = 0;
+    fusionEle_i < fusionElements.length;
+    fusionEle_i++
+  ) {
     const fusionElement = fusionElements[fusionEle_i];
     const elementName = transferElementName(fusionElement.elementName);
     let elementId = fusionElement.id;
@@ -70,7 +73,10 @@ function generateEWCsvFile(fusionElements, popupElements, csv_files, index) {
 
     if (backgroundSrc != '') {
       if (backgroundSrc.includes('shared/assets')) {
-        backgroundSrc = backgroundSrc.replace(/shared\/assets\//, '../common/media/');
+        backgroundSrc = backgroundSrc.replace(
+          /shared\/assets\//,
+          '../common/media/'
+        );
       } else {
         backgroundSrc = backgroundSrc.replace(/assets\//, './media/');
       }
@@ -85,7 +91,7 @@ function generateEWCsvFile(fusionElements, popupElements, csv_files, index) {
       if (style.includes('z-index')) {
         style = style.replace(/z-index: (\d+);/, ` z-index: ${zIndex};`);
       } else {
-        style = `${style} z-index: 1;`
+        style = `${style} z-index: 1;`;
       }
     }
     if (elementName === WIZ_ACTION) {
@@ -95,7 +101,10 @@ function generateEWCsvFile(fusionElements, popupElements, csv_files, index) {
       if (elementId_match && elementId_match[1]) {
         elementId = elementId_match[1];
       }
-      if (attributes.includes(`do="Toggle state"`) || attributes.includes(`do="Apply state"`)) {
+      if (
+        attributes.includes(`do="Toggle state"`) ||
+        attributes.includes(`do="Apply state"`)
+      ) {
         //state=""Popup-LYQ1E6O8LT7NE""
         const popup_id_regex = /state="Popup-([^"]+)"/;
         const popup_id_match = attributes.match(popup_id_regex);
@@ -109,7 +118,11 @@ function generateEWCsvFile(fusionElements, popupElements, csv_files, index) {
         if (popup_id_match) {
           attributes = `v-open.popup.tap="'${popup_id_match[1]}'"`;
         }
-      } else if (attributes.includes(`do="Navigate"`)|| attributes.includes(`do="Previous slide"`) || attributes.includes(`do="Next slide"`)) {
+      } else if (
+        attributes.includes(`do="Navigate"`) ||
+        attributes.includes(`do="Previous slide"`) ||
+        attributes.includes(`do="Next slide"`)
+      ) {
         //binder=""202719""
         const binder_id_regex = /binder="([^"]+)"/;
         const binder_id_match = attributes.match(binder_id_regex);
@@ -127,20 +140,33 @@ function generateEWCsvFile(fusionElements, popupElements, csv_files, index) {
         const adv_folder = csv_files[index]['adv_folder'];
         const slide_folder = csv_files[index]['slide_folder'];
         let current_adv_slide_data = adv_slides_data.find((slide) => {
-          return slide['aa-binder-id'] === binder_id && slide['aa-slide-id'] === aa_slide_id;
+          return (
+            slide['aa-binder-id'] === binder_id &&
+            slide['aa-slide-id'] === aa_slide_id
+          );
         });
         if (binder_id === '' && aa_slide_id !== '') {
           current_adv_slide_data = adv_slides_data.find((slide) => {
-            return slide['adv-folder'] === adv_folder && slide['slide-folder'] === aa_slide_id;
-          })
+            return (
+              slide['adv-folder'] === adv_folder &&
+              slide['slide-folder'] === aa_slide_id
+            );
+          });
         }
         if (attributes.includes(`do="Previous slide"`)) {
           current_adv_slide_data = adv_slides_data.find((slide) => {
-            return slide['adv-folder'] === adv_folder && slide['slide-folder'] === slide_folder;
+            return (
+              slide['adv-folder'] === adv_folder &&
+              slide['slide-folder'] === slide_folder
+            );
           });
-          const previousOrder = Number(current_adv_slide_data['slide-order']) - 1;
+          const previousOrder =
+            Number(current_adv_slide_data['slide-order']) - 1;
           const prev_adv_slide_data = adv_slides_data.find((slide) => {
-            return slide['adv-folder'] === adv_folder && slide['slide-order'] === previousOrder.toString();
+            return (
+              slide['adv-folder'] === adv_folder &&
+              slide['slide-order'] === previousOrder.toString()
+            );
           });
 
           // if (adv_folder === 'LRP_ONCO_ADV_FINAL_GL_EN') {
@@ -155,24 +181,37 @@ function generateEWCsvFile(fusionElements, popupElements, csv_files, index) {
           if (prev_adv_slide_data) {
             current_adv_slide_data = prev_adv_slide_data;
           } else {
-            console.error(`ERROR: Couldn't find the previous slide of slide "${slide_folder}" of adv "${adv_folder}"`)
+            console.error(
+              `ERROR: Couldn't find the previous slide of slide "${slide_folder}" of adv "${adv_folder}"`
+            );
           }
         } else if (attributes.includes(`do="Next slide"`)) {
           current_adv_slide_data = adv_slides_data.find((slide) => {
-            return slide['adv-folder'] === adv_folder && slide['slide-folder'] === slide_folder;
+            return (
+              slide['adv-folder'] === adv_folder &&
+              slide['slide-folder'] === slide_folder
+            );
           });
           const nextOrder = Number(current_adv_slide_data['slide-order']) + 1;
           const next_adv_slide_data = adv_slides_data.find((slide) => {
-            return slide['adv-folder'] === adv_folder && slide['slide-order'] === nextOrder.toString();
+            return (
+              slide['adv-folder'] === adv_folder &&
+              slide['slide-order'] === nextOrder.toString()
+            );
           });
           if (next_adv_slide_data) {
             current_adv_slide_data = next_adv_slide_data;
           } else {
-            console.error(`ERROR: Couldn't find the next slide of slide "${slide_folder}" of adv "${adv_folder}"`)
+            console.error(
+              `ERROR: Couldn't find the next slide of slide "${slide_folder}" of adv "${adv_folder}"`
+            );
           }
         }
-        const chapter = current_adv_slide_data && current_adv_slide_data['chapter'] || '';
-        const slide_name = current_adv_slide_data && current_adv_slide_data['slide-name'] || '';
+        const chapter =
+          (current_adv_slide_data && current_adv_slide_data['chapter']) || '';
+        const slide_name =
+          (current_adv_slide_data && current_adv_slide_data['slide-name']) ||
+          '';
         attributes = `v-goto.tap="{'animation':true,'disabled':false,'slide':'${slide_name}','chapter':'${chapter}'}"`;
       } else if (attributes.includes(`do="Remove state"`)) {
         attributes = `NOT APPLICABLE IN EWIZARD`;
@@ -195,7 +234,10 @@ function generateEWCsvFile(fusionElements, popupElements, csv_files, index) {
       if (backgroundSrc === '') {
         backgroundSrc = popupOverlay.src;
         if (backgroundSrc.includes('shared/assets')) {
-          backgroundSrc = backgroundSrc.replace(/shared\/assets\//, '../common/media/');
+          backgroundSrc = backgroundSrc.replace(
+            /shared\/assets\//,
+            '../common/media/'
+          );
         } else {
           backgroundSrc = backgroundSrc.replace(/assets\//, './media/');
         }
@@ -230,11 +272,13 @@ function generateEWCsvFile(fusionElements, popupElements, csv_files, index) {
   }
 
   const csvStream = csv.format({ headers: true, delimiter: '|' });
-  csvStream.pipe(fs.createWriteStream(ew_csv_file, { flags: 'a' })).on('finish', () => {
-    console.log(`CSV file of '${ew_csv_file}' created successfully.`);
-  });
+  csvStream
+    .pipe(fs.createWriteStream(ew_csv_file, { flags: 'a' }))
+    .on('finish', () => {
+      console.log(`CSV file of '${ew_csv_file}' created successfully.`);
+    });
 
-  for (let ewEle_i = 0; ewEle_i < ewElements.length; ewEle_i++){
+  for (let ewEle_i = 0; ewEle_i < ewElements.length; ewEle_i++) {
     csvStream.write(ewElements[ewEle_i]);
   }
 
@@ -261,7 +305,7 @@ function combineAndGenerateEWCsvStructure() {
     }
 
     console.log(`Processing ADV: ${adv_folder}`);
-    
+
     const outputAdvFolderPath = path.join(EW_csvStructureFolder, adv_folder);
     if (!fs.existsSync(outputAdvFolderPath)) {
       fs.mkdirSync(outputAdvFolderPath, { recursive: true });
@@ -270,39 +314,58 @@ function combineAndGenerateEWCsvStructure() {
 
     const slide_folders = fs.readdirSync(currentADVFolderPath);
 
-    for (let slide_folder_i = 0; slide_folder_i < slide_folders.length; slide_folder_i++) {
+    for (
+      let slide_folder_i = 0;
+      slide_folder_i < slide_folders.length;
+      slide_folder_i++
+    ) {
       const slide_folder = slide_folders[slide_folder_i];
-      const currentSlideFolderPath = path.join(currentADVFolderPath, slide_folder);
+      const currentSlideFolderPath = path.join(
+        currentADVFolderPath,
+        slide_folder
+      );
       if (!fs.lstatSync(currentSlideFolderPath).isDirectory()) {
         continue;
       }
 
-      const outputSlideFolderPath = path.join(outputAdvFolderPath, slide_folder);
+      const outputSlideFolderPath = path.join(
+        outputAdvFolderPath,
+        slide_folder
+      );
       if (!fs.existsSync(outputSlideFolderPath)) {
         fs.mkdirSync(outputSlideFolderPath, { recursive: true });
         console.log(`Created Slide folder: ${outputSlideFolderPath}`);
       }
 
       const currentAssetFolder = path.join(currentSlideFolderPath, 'assets');
-      const outputMediaFolder = path.join(outputSlideFolderPath, 'media')
+      const outputMediaFolder = path.join(outputSlideFolderPath, 'media');
       if (fs.existsSync(currentAssetFolder)) {
         fs.cpSync(currentAssetFolder, outputMediaFolder, { recursive: true });
       }
       // JHPD - START - Need to develop - copy the assets from shared to media shared
       // END
 
-      const aa_csv_file = path.join(AA_csvStructureFolder, adv_folder, `${slide_folder}.csv`);
-      const ew_csv_file = path.join(EW_csvStructureFolder, adv_folder, slide_folder, `slide_structure.csv`);
+      const aa_csv_file = path.join(
+        AA_csvStructureFolder,
+        adv_folder,
+        `${slide_folder}.csv`
+      );
+      const ew_csv_file = path.join(
+        EW_csvStructureFolder,
+        adv_folder,
+        slide_folder,
+        `slide_structure.csv`
+      );
       if (fs.existsSync(aa_csv_file)) {
         csv_files.push({
-          'adv_folder': adv_folder,
-          'slide_folder': slide_folder,
-          'aa_csv_file': aa_csv_file,
-          'ew_csv_file': ew_csv_file
+          adv_folder: adv_folder,
+          slide_folder: slide_folder,
+          aa_csv_file: aa_csv_file,
+          ew_csv_file: ew_csv_file,
         });
       }
-    };
-  };
+    }
+  }
 
   convertCSVFiles(csv_files, 0);
 }
@@ -326,7 +389,7 @@ function readADVStructureFile() {
   const advSlides = [];
 
   fs.createReadStream(ADV_Analysis_Path)
-    .pipe(csv.parse({ headers: true}))
+    .pipe(csv.parse({ headers: true }))
     .on('data', (row) => {
       advSlides.push(row);
     })
@@ -340,14 +403,17 @@ function readADVStructureFile() {
           'aa-slide-id': adv_slide_row['aa-slide-id'] || '',
           'slide-order': adv_slide_row['slide-order'] || '',
           'cloned-adv-name': adv_slide_row['cloned-adv-name'] || '',
-          'chapter': adv_slide_row['chapter'] || '',
+          chapter: adv_slide_row['chapter'] || '',
           'slide-name': adv_slide_row['slide-name'] || '',
           'slide-data-asset-id': adv_slide_row['slide-data-asset-id'] || '',
-          'slide-id': adv_slide_row['slide-id'] || ''
+          'slide-id': adv_slide_row['slide-id'] || '',
         };
         adv_slides_data.push(adv_slide_data);
       }
-      combineAndGenerateEWCsvStructure(AA_csvStructureFolder, EW_csvStructureFolder);
+      combineAndGenerateEWCsvStructure(
+        AA_csvStructureFolder,
+        EW_csvStructureFolder
+      );
     });
 }
 

@@ -14,17 +14,22 @@ function readEWClonedADVFolder(adv_slides_data, index) {
   if (cloned_adv_folder === '' && slide_name === '') {
     index = index + 1;
     readEWClonedADVFolder(adv_slides_data, index);
-    return;  
+    return;
   }
-  const clonedADVSlidePath = path.join(EWClonedADVsFolder, cloned_adv_folder, 'slides', slide_name);
+  const clonedADVSlidePath = path.join(
+    EWClonedADVsFolder,
+    cloned_adv_folder,
+    'slides',
+    slide_name
+  );
   const clonedSlideVueIndexPath = path.join(clonedADVSlidePath, 'index.vue');
 
   fs.readFile(clonedSlideVueIndexPath, 'utf8', (err, htmlContent) => {
     if (err) {
-        console.error('Error reading file:', clonedSlideVueIndexPath, err);
-        index = index + 1;
-        readEWClonedADVFolder(adv_slides_data, index);
-        return;
+      console.error('Error reading file:', clonedSlideVueIndexPath, err);
+      index = index + 1;
+      readEWClonedADVFolder(adv_slides_data, index);
+      return;
     }
 
     const $ = cheerio.load(htmlContent);
@@ -32,7 +37,7 @@ function readEWClonedADVFolder(adv_slides_data, index) {
     const dataAssetId = $('wiz-slide').attr('data-asset-id');
     adv_slides_data[index]['slide-id'] = slideId;
     adv_slides_data[index]['slide-data-asset-id'] = dataAssetId;
-    
+
     index = index + 1;
     readEWClonedADVFolder(adv_slides_data, index);
   });
@@ -40,7 +45,10 @@ function readEWClonedADVFolder(adv_slides_data, index) {
 
 function createNewADVAnalysisFile(adv_slides_data) {
   // Create a timestamp for the filename
-  const timestamp = new Date().toISOString().replace(/:/g, '-').replace(/\./g, '-');
+  const timestamp = new Date()
+    .toISOString()
+    .replace(/:/g, '-')
+    .replace(/\./g, '-');
 
   // Rename the existing file
   const currentCsvPath = path.join('adv_analysis.csv');
@@ -54,7 +62,7 @@ function createNewADVAnalysisFile(adv_slides_data) {
   });
 
   // Write the new data to the CSV
-  adv_slides_data.forEach(element => {
+  adv_slides_data.forEach((element) => {
     csvStream.write(element);
   });
 
@@ -66,7 +74,7 @@ function readADVStructureFile() {
   const advSlides = [];
 
   fs.createReadStream(ADV_Analysis_Path)
-    .pipe(csv.parse({ headers: true}))
+    .pipe(csv.parse({ headers: true }))
     .on('data', (row) => {
       advSlides.push(row);
     })
@@ -78,10 +86,10 @@ function readADVStructureFile() {
           'Slide-name': adv_slide_row['Slide-name'],
           'slide-order': adv_slide_row['slide-order'] || '',
           'cloned-adv-name': adv_slide_row['cloned-adv-name'] || '',
-          'chapter': adv_slide_row['chapter'] || '',
+          chapter: adv_slide_row['chapter'] || '',
           'slide-name': adv_slide_row['slide-name'] || '',
           'slide-data-asset-id': adv_slide_row['slide-data-asset-id'] || '',
-          'slide-id': adv_slide_row['slide-id'] || ''
+          'slide-id': adv_slide_row['slide-id'] || '',
         };
         adv_slides_data.push(adv_slide_data);
       }

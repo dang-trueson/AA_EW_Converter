@@ -9,19 +9,25 @@ const EWIZARD_POPUP_ELEMENT = 'wiz-popup';
 const EWIZARD_BUTTON_ELEMENT = 'wiz-button';
 const EWIZARD_ACTION_ELEMENT = 'wiz-action';
 const EWIZARD_VIDEO_ELEMENT = 'wiz-video';
-const EXCLUDED_ELEMENTS = [
-  'wiz-slide',
-  'wiz-action',
-  'ARTICLE'
-];
+const EXCLUDED_ELEMENTS = ['wiz-slide', 'wiz-action', 'ARTICLE'];
 
-function startGeneratingWiz(adv_folders, json_structures, adv_slide_folders, index) {
+function startGeneratingWiz(
+  adv_folders,
+  json_structures,
+  adv_slide_folders,
+  index
+) {
   if (index >= adv_slide_folders.length) {
     return;
   }
   const adv_folder = adv_slide_folders[index]['adv-folder'];
   const slide_folder = adv_slide_folders[index]['slide-folder'];
-  const slide_structure_file = path.join(CSV_STRUCTURE_FOLDER, adv_folder, slide_folder, 'slide_structure.csv');
+  const slide_structure_file = path.join(
+    CSV_STRUCTURE_FOLDER,
+    adv_folder,
+    slide_folder,
+    'slide_structure.csv'
+  );
   const ewizardElements = [];
   const wizActions = {};
   fs.createReadStream(slide_structure_file)
@@ -33,17 +39,34 @@ function startGeneratingWiz(adv_folders, json_structures, adv_slide_folders, ind
       }
     })
     .on('end', () => {
-      generateVueFile(ewizardElements, wizActions, adv_folders, json_structures, adv_slide_folders, index);
+      generateVueFile(
+        ewizardElements,
+        wizActions,
+        adv_folders,
+        json_structures,
+        adv_slide_folders,
+        index
+      );
     });
 }
 
-function generateVueFile(ewizardElements, wizActions, adv_folders, json_structures, adv_slide_folders, index) {
+function generateVueFile(
+  ewizardElements,
+  wizActions,
+  adv_folders,
+  json_structures,
+  adv_slide_folders,
+  index
+) {
   const adv_folder = adv_slide_folders[index]['adv-folder'];
   const slide_folder = adv_slide_folders[index]['slide-folder'];
   let vue_slide_folder = slide_folder;
-  if (adv_slide_folders[index]['slide-name'] && adv_slide_folders[index]['slide-name'] !== ''){
+  if (
+    adv_slide_folders[index]['slide-name'] &&
+    adv_slide_folders[index]['slide-name'] !== ''
+  ) {
     vue_slide_folder = adv_slide_folders[index]['slide-name'];
-  };
+  }
   const slide_data = json_structures[adv_folder]['slides'].find((slide) => {
     return slide['slide-folder'] === slide_folder;
   });
@@ -59,7 +82,12 @@ function generateVueFile(ewizardElements, wizActions, adv_folders, json_structur
   if (!slide_data_asset_id || slide_data_asset_id == '') {
     slide_data_asset_id = '--replace-by-slide-data-asset-id';
   }
-  const vueFilePath = path.join(WIZ_OUTPUT_FOLDER, adv_folder, vue_slide_folder, 'index.vue');
+  const vueFilePath = path.join(
+    WIZ_OUTPUT_FOLDER,
+    adv_folder,
+    vue_slide_folder,
+    'index.vue'
+  );
   // if (adv_folder === 'LRP_ONCO_ADV_FINAL_GL_EN' && vue_slide_folder === 'slide_001') {
   //   console.log('JHPD - vueFilePath - ', vueFilePath);
   //   console.log('JHPD - wizActions - ', wizActions);
@@ -68,18 +96,26 @@ function generateVueFile(ewizardElements, wizActions, adv_folders, json_structur
 
   function generateChildElements(children, ewizardElements) {
     return children
-      .filter(child => !processedElements[child.id]) // Filter out processed elements
-      .map(child => {
+      .filter((child) => !processedElements[child.id]) // Filter out processed elements
+      .map((child) => {
         processedElements[child.id] = true;
-        const grandChildren = ewizardElements.filter(grandChild => grandChild.parentId === child.id);
-        const grandChildElements = grandChildren.length > 0 ? generateChildElements(grandChildren, ewizardElements) : '';
+        const grandChildren = ewizardElements.filter(
+          (grandChild) => grandChild.parentId === child.id
+        );
+        const grandChildElements =
+          grandChildren.length > 0
+            ? generateChildElements(grandChildren, ewizardElements)
+            : '';
         const elementName = child.elementName;
         var text_transfer_id = '';
         if (child.elementName === EWIZARD_TEXT_ELEMENT) {
           text_transfer_id = ` :text="$t('${child.id}')"`;
         }
         var src_img = '';
-        if (child.elementName === EWIZARD_IMAGE_ELEMENT || child.elementName === EWIZARD_VIDEO_ELEMENT) {
+        if (
+          child.elementName === EWIZARD_IMAGE_ELEMENT ||
+          child.elementName === EWIZARD_VIDEO_ELEMENT
+        ) {
           src_img = ` src="${child.src}"`;
         }
         var popup_attr = '';
@@ -87,42 +123,61 @@ function generateVueFile(ewizardElements, wizActions, adv_folders, json_structur
           popup_attr = ` :show-on-enter="false" :close-on-outside-tap="true" :show-overlay="true"`;
         }
         let wizAction = '';
-        if (wizActions[child.id] && !wizActions[child.id].includes('NOT APPLICABLE')) {
+        if (
+          wizActions[child.id] &&
+          !wizActions[child.id].includes('NOT APPLICABLE')
+        ) {
           wizAction = wizActions[child.id];
         }
-        return `<${elementName}` +
+        return (
+          `<${elementName}` +
           ` id="${child.id}"` +
           text_transfer_id +
           popup_attr +
           wizAction +
           ` ${src_img} >
           ${grandChildElements}
-          </${elementName}>`;
+          </${elementName}>`
+        );
       })
       .join('\n  ');
   }
-  
+
   // Process parent elements first
-  const parentElements = ewizardElements.filter(element => !element.parentId && !EXCLUDED_ELEMENTS.includes(element.elementName));
-  parentElements.forEach(element => {
+  const parentElements = ewizardElements.filter(
+    (element) =>
+      !element.parentId && !EXCLUDED_ELEMENTS.includes(element.elementName)
+  );
+  parentElements.forEach((element) => {
     processedElements[element.id] = true; // Mark parent as processed
   });
 
   // Generate Vue code for parent elements
   const parentVueContent = parentElements
-    .map(element => {
-      const children = ewizardElements.filter(child => child.parentId === element.id);
-      const childElements = children.length > 0 ? generateChildElements(children, ewizardElements) : '';
+    .map((element) => {
+      const children = ewizardElements.filter(
+        (child) => child.parentId === element.id
+      );
+      const childElements =
+        children.length > 0
+          ? generateChildElements(children, ewizardElements)
+          : '';
       const elementName = element.elementName;
       if (elementName === EWIZARD_ACTION_ELEMENT) {
         return '';
       }
       var text_transfer_id = '';
-      if (element.elementName === EWIZARD_TEXT_ELEMENT || element.elementName === EWIZARD_BUTTON_ELEMENT) {
+      if (
+        element.elementName === EWIZARD_TEXT_ELEMENT ||
+        element.elementName === EWIZARD_BUTTON_ELEMENT
+      ) {
         text_transfer_id = ` :text="$t('${element.id}')"`;
       }
       var src_img = '';
-      if (element.elementName === EWIZARD_IMAGE_ELEMENT || element.elementName === EWIZARD_VIDEO_ELEMENT){
+      if (
+        element.elementName === EWIZARD_IMAGE_ELEMENT ||
+        element.elementName === EWIZARD_VIDEO_ELEMENT
+      ) {
         src_img = ` src="${element.src}"`;
       }
       var popup_attr = '';
@@ -130,20 +185,24 @@ function generateVueFile(ewizardElements, wizActions, adv_folders, json_structur
         popup_attr = ` :show-on-enter="false" :close-on-outside-tap="true" :show-overlay="true"`;
       }
       let wizAction = '';
-      if (wizActions[element.id] && !wizActions[element.id].includes('NOT APPLICABLE')) {
+      if (
+        wizActions[element.id] &&
+        !wizActions[element.id].includes('NOT APPLICABLE')
+      ) {
         wizAction = ` ${wizActions[element.id]}`;
       }
-      return `<${elementName}` +
+      return (
+        `<${elementName}` +
         ` id="${element.id}"` +
         text_transfer_id +
         popup_attr +
         wizAction +
         ` ${src_img} >
           ${childElements}
-          </${elementName}>`;
+          </${elementName}>`
+      );
     })
     .join('\n  ');
-
 
   const vueContent = `
 <i18n>
@@ -151,11 +210,19 @@ function generateVueFile(ewizardElements, wizActions, adv_folders, json_structur
   "eng": {
     ${ewizardElements
       .map((element) => {
-        if (element.elementName === EWIZARD_TEXT_ELEMENT || element.elementName === EWIZARD_BUTTON_ELEMENT) {
-          return `"${element.id}": "${element.htmlContent.replaceAll('"', "'")}",`;
+        if (
+          element.elementName === EWIZARD_TEXT_ELEMENT ||
+          element.elementName === EWIZARD_BUTTON_ELEMENT
+        ) {
+          return `"${element.id}": "${element.htmlContent.replaceAll(
+            '"',
+            "'"
+          )}",`;
         }
       })
-      .join('\n    ').replace(/,\s*$/, '').trim()}
+      .join('\n    ')
+      .replace(/,\s*$/, '')
+      .trim()}
   }
 }
 </i18n>
@@ -186,14 +253,20 @@ export default {
         const style = element.style;
         var modifiedStyle = style.replace(/--[a-z-]+\s*:\s*[^;]+;?/g, '');
         if (element.src && element.src != '') {
-          modifiedStyle = `${modifiedStyle} background: url("slides/${slide_name}/${element.src.replace('./media', 'media')}") center center / cover no-repeat;`
+          modifiedStyle = `${modifiedStyle} background: url("slides/${slide_name}/${element.src.replace(
+            './media',
+            'media'
+          )}") center center / cover no-repeat;`;
         }
         if (modifiedStyle !== '') {
           cssStyle = `  #app #${slide_id}.wiz-slide {
     ${modifiedStyle}
   }`;
         }
-      } else if (element.elementName.includes('wiz-') && !EXCLUDED_ELEMENTS.includes(element.elementName)) {
+      } else if (
+        element.elementName.includes('wiz-') &&
+        !EXCLUDED_ELEMENTS.includes(element.elementName)
+      ) {
         const style = element.style;
         // const zIndex = style.match(/z-index:\s*(\d+);?/);
         // const modifiedStyle = zIndex ? style : `${style} z-index: 1;`;
@@ -212,8 +285,16 @@ export default {
   width: ${ewWidth};
   height: ${ewHeight};`;
         }
-        if ((element.elementName !== EWIZARD_IMAGE_ELEMENT && element.elementName !== EWIZARD_VIDEO_ELEMENT) && element.src && element.src != '') {
-          modifiedStyle = `${modifiedStyle} background: url("slides/${slide_name}/${element.src.replace('./media', 'media')}") center center / cover no-repeat;`
+        if (
+          element.elementName !== EWIZARD_IMAGE_ELEMENT &&
+          element.elementName !== EWIZARD_VIDEO_ELEMENT &&
+          element.src &&
+          element.src != ''
+        ) {
+          modifiedStyle = `${modifiedStyle} background: url("slides/${slide_name}/${element.src.replace(
+            './media',
+            'media'
+          )}") center center / cover no-repeat;`;
         }
         let elementClass = '';
         if (element.elementName === EWIZARD_BUTTON_ELEMENT) {
@@ -234,14 +315,21 @@ export default {
 `;
 
   fs.writeFileSync(vueFilePath, vueContent);
-  console.log(`Create index vue file of ADV "${adv_folder}" - slide "${slide_folder}"`);
-  startGeneratingWiz(adv_folders, json_structures, adv_slide_folders, index + 1);
+  console.log(
+    `Create index vue file of ADV "${adv_folder}" - slide "${slide_folder}"`
+  );
+  startGeneratingWiz(
+    adv_folders,
+    json_structures,
+    adv_slide_folders,
+    index + 1
+  );
 }
 
 function generateStructure() {
   const advSlide_rows = [];
   fs.createReadStream(ADV_ANALYSIS_FILE)
-    .pipe(csv.parse({ headers: true}))
+    .pipe(csv.parse({ headers: true }))
     .on('data', (row) => {
       advSlide_rows.push(row);
     })
@@ -249,7 +337,11 @@ function generateStructure() {
       let json_structures = {};
       const adv_folders = [];
       const adv_slide_folders = [];
-      for (let advSlide_i = 0; advSlide_i < advSlide_rows.length; advSlide_i++) {
+      for (
+        let advSlide_i = 0;
+        advSlide_i < advSlide_rows.length;
+        advSlide_i++
+      ) {
         const advSlide_row = advSlide_rows[advSlide_i];
         // ADV-name	Slide-name	aa-binder-id	aa-slide-id	slide-order	cloned-adv-name	chapter	slide-name	slide-data-asset-id	slide-id
         const adv_folder = advSlide_row['ADV-name'];
@@ -263,15 +355,15 @@ function generateStructure() {
         adv_slide_folders.push({
           'adv-folder': adv_folder,
           'slide-folder': slide_folder,
-          'slide-name': slide_name
+          'slide-name': slide_name,
         });
         if (!json_structures[adv_folder]) {
           json_structures[adv_folder] = {
             'cloned-adv-name': advSlide_row['cloned-adv-name'],
-            'slides': [],
-            'structure_json': {
-              'slides': {}
-            }
+            slides: [],
+            structure_json: {
+              slides: {},
+            },
           };
           adv_folders.push(adv_folder);
         }
@@ -279,19 +371,20 @@ function generateStructure() {
         const slide_info = {
           'slide-folder': advSlide_row['Slide-name'] || '',
           'slide-order': advSlide_row['slide-order'] || '',
-          'chapter': advSlide_row['chapter'] || '',
+          chapter: advSlide_row['chapter'] || '',
           'slide-name': advSlide_row['slide-name'] || '',
           'slide-data-asset-id': advSlide_row['slide-data-asset-id'] || '',
-          'slide-id': advSlide_row['slide-id'] || ''
-        }
+          'slide-id': advSlide_row['slide-id'] || '',
+        };
         json_structures[adv_folder]['slides'].push(slide_info);
-        if (advSlide_row['slide-name']){
+        if (advSlide_row['slide-name']) {
           const slide_name = advSlide_row['slide-name'];
-          json_structures[adv_folder]['structure_json']['slides'][slide_name] = {
-            "name": advSlide_row['Slide-name'],
-            "template": `slides/${slide_name}/index.vue`,
-            "nameOriginal": "Blank slide"
-          }
+          json_structures[adv_folder]['structure_json']['slides'][slide_name] =
+            {
+              name: advSlide_row['Slide-name'],
+              template: `slides/${slide_name}/index.vue`,
+              nameOriginal: 'Blank slide',
+            };
         }
 
         const advFolderPath = path.join(WIZ_OUTPUT_FOLDER, adv_folder);
@@ -299,35 +392,72 @@ function generateStructure() {
         if (!fs.existsSync(advFolderPath)) {
           fs.mkdirSync(advFolderPath, { recursive: true });
         }
-        const slideFolderPath = path.join(WIZ_OUTPUT_FOLDER, adv_folder, created_slide_folder);
+        const slideFolderPath = path.join(
+          WIZ_OUTPUT_FOLDER,
+          adv_folder,
+          created_slide_folder
+        );
         if (!fs.existsSync(slideFolderPath)) {
           fs.mkdirSync(slideFolderPath, { recursive: true });
         }
-        const csvMediaFolder = path.join(CSV_STRUCTURE_FOLDER, adv_folder, slide_folder, 'media');
-        const convertedMediaFolder = path.join(WIZ_OUTPUT_FOLDER, adv_folder, created_slide_folder, 'media')
+        const csvMediaFolder = path.join(
+          CSV_STRUCTURE_FOLDER,
+          adv_folder,
+          slide_folder,
+          'media'
+        );
+        const convertedMediaFolder = path.join(
+          WIZ_OUTPUT_FOLDER,
+          adv_folder,
+          created_slide_folder,
+          'media'
+        );
         if (fs.existsSync(csvMediaFolder)) {
           fs.mkdirSync(convertedMediaFolder, { recursive: true });
           fs.cpSync(csvMediaFolder, convertedMediaFolder, { recursive: true });
         }
 
-        const csvSharedMediaFolder = path.join(CSV_STRUCTURE_FOLDER, adv_folder, 'shared', 'media');
-        const convertedSharedMediaFolder = path.join(WIZ_OUTPUT_FOLDER, adv_folder, 'shared', 'media')
+        const csvSharedMediaFolder = path.join(
+          CSV_STRUCTURE_FOLDER,
+          adv_folder,
+          'shared',
+          'media'
+        );
+        const convertedSharedMediaFolder = path.join(
+          WIZ_OUTPUT_FOLDER,
+          adv_folder,
+          'shared',
+          'media'
+        );
         if (fs.existsSync(csvSharedMediaFolder)) {
-          const convertedSharedFolder = path.join(WIZ_OUTPUT_FOLDER, adv_folder, 'shared');
+          const convertedSharedFolder = path.join(
+            WIZ_OUTPUT_FOLDER,
+            adv_folder,
+            'shared'
+          );
           if (!fs.existsSync(convertedSharedFolder)) {
             fs.mkdirSync(convertedSharedFolder, { recursive: true });
             fs.mkdirSync(convertedSharedMediaFolder, { recursive: true });
-            fs.cpSync(csvSharedMediaFolder, convertedSharedMediaFolder, { recursive: true });
+            fs.cpSync(csvSharedMediaFolder, convertedSharedMediaFolder, {
+              recursive: true,
+            });
           }
         }
       }
 
-      for (let adv_folder_i = 0; adv_folder_i < adv_folders.length; adv_folder_i++) {
+      for (
+        let adv_folder_i = 0;
+        adv_folder_i < adv_folders.length;
+        adv_folder_i++
+      ) {
         const adv_folder = adv_folders[adv_folder_i];
         const advFolderPath = path.join(WIZ_OUTPUT_FOLDER, adv_folder);
         // Write the JSON file to the ADV folder
         const jsonFilePath = path.join(advFolderPath, 'structure.json');
-        fs.writeFileSync(jsonFilePath, JSON.stringify(json_structures[adv_folder]['structure_json'], null, 2));
+        fs.writeFileSync(
+          jsonFilePath,
+          JSON.stringify(json_structures[adv_folder]['structure_json'], null, 2)
+        );
       }
       startGeneratingWiz(adv_folders, json_structures, adv_slide_folders, 0);
     });
