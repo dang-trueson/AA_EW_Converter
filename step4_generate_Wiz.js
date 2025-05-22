@@ -270,6 +270,7 @@ export default {
         const style = element.style;
         // const zIndex = style.match(/z-index:\s*(\d+);?/);
         // const modifiedStyle = zIndex ? style : `${style} z-index: 1;`;
+
         var modifiedStyle = style.replace(/--[a-z-]+\s*:\s*[^;]+;?/g, '');
         if (element.elementName === EWIZARD_POPUP_ELEMENT) {
           modifiedStyle = modifiedStyle.replace('opacity: 100;', '');
@@ -337,12 +338,7 @@ function generateStructure() {
       let json_structures = {};
       const adv_folders = [];
       const adv_slide_folders = [];
-      for (
-        let advSlide_i = 0;
-        advSlide_i < advSlide_rows.length;
-        advSlide_i++
-      ) {
-        const advSlide_row = advSlide_rows[advSlide_i];
+      for (let advSlide_row of advSlide_rows) {
         // ADV-name	Slide-name	aa-binder-id	aa-slide-id	slide-order	cloned-adv-name	chapter	slide-name	slide-data-asset-id	slide-id
         const adv_folder = advSlide_row['ADV-name'];
         const slide_folder = advSlide_row['Slide-name'];

@@ -79,8 +79,7 @@ function readADVStructureFile() {
       advSlides.push(row);
     })
     .on('end', () => {
-      for (let advSlide_i = 0; advSlide_i < advSlides.length; advSlide_i++) {
-        const adv_slide_row = advSlides[advSlide_i];
+      for (let adv_slide_row of advSlides) {
         const adv_slide_data = {
           'ADV-name': adv_slide_row['ADV-name'],
           'Slide-name': adv_slide_row['Slide-name'],

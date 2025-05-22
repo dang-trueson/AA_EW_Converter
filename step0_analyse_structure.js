@@ -20,7 +20,7 @@ function extractFusionElements(
   slide_folder_name
 ) {
   const $ = cheerio.load(htmlContent);
-  const slideId = $('article').attr('id');
+  // const slideId = $('article').attr('id');
   const fusionElement = {};
   fusionElement['ADV-name'] = adv_folder_name;
   fusionElement['Slide-name'] = slide_folder_name;
@@ -130,8 +130,7 @@ function initFolders() {
     'EW_csv_structures',
   ];
   let init_flag = false;
-  for (let folder_i = 0; folder_i < folders.length; folder_i++) {
-    const folder = folders[folder_i];
+  for (const folder of folders) {
     if (!fs.existsSync(folder)) {
       fs.mkdirSync(folder, { recursive: true });
       console.log(`Created folder: ${folder}`);
@@ -155,7 +154,7 @@ function initFolders() {
       `Folder "EW_cloned_ADVs": Using wiz clone <ewizard-adv-url-id>, you have to clone the clonning ADV to get the information after step 3 of slide-id, data-asset-id to avoid manually copying them into the cloned ADVs.`
     );
     console.log(
-      `Folder "EW_Converted_ADVs": After running step 4, you will have the clean Ewziard slide structures in corresponding ADV folder with structure file for you to copying to the cloned_ADV before using pushing CLI "wiz push" to update the changes to the EWizard platform.`
+      `Folder "EW_Converted_ADVs": After running step 4, you will have the clean Ewizard slide structures in corresponding ADV folder with structure file for you to copying to the cloned_ADV before using pushing CLI "wiz push" to update the changes to the EWizard platform.`
     );
   }
   return true;

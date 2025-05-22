@@ -57,17 +57,16 @@ function extractFusionElements(htmlContent) {
   const $ = cheerio.load(htmlContent);
   const slideId = $('article').attr('id');
   const fusionElements = [];
-  for (var fusionTagNameIndex in FUSION_LIST) {
+  for (let fusionTagNameIndex in FUSION_LIST) {
     const fusionTagName = FUSION_LIST[fusionTagNameIndex];
     $(fusionTagName).each((index, element) => {
       const $element = $(element);
-      var attributesText = '';
-      var propStyle = '';
-      var elementStyle = $element.attr('style') || '';
-      var backgroundSrc = $element.attr('src') || '';
-      var attributeKeys = Object.keys($element.attr());
-      for (let attr_i = 0; attr_i < attributeKeys.length; attr_i++) {
-        const attr = attributeKeys[attr_i];
+      let attributesText = '';
+      let propStyle = '';
+      let elementStyle = $element.attr('style') || '';
+      let backgroundSrc = $element.attr('src') || '';
+      let attributeKeys = Object.keys($element.attr());
+      for (let attr of attributeKeys.length) {
         attributesText = `${attributesText} ${attr}="${$element.attr(attr)}"`;
         if (
           ATTRIBUTE_LIST.includes(attr) &&
@@ -102,9 +101,11 @@ function extractFusionElements(htmlContent) {
             .replace(/url\('([^']+)'\)/, '$1');
         }
       }
+
       // if (backgroundSrc !== '') {
       //   backgroundSrc = backgroundSrc.replace(/assets\//, 'media/');
       // }
+
       var currentEleHtmlContent = '';
       if (!IGNORE_HTML_CONTENT_LOST.includes(fusionTagName)) {
         currentEleHtmlContent = $element.html().replace(/\|/g, '&#124;');
@@ -132,8 +133,7 @@ function extractFusionElements(htmlContent) {
 function readHTMLFilesInFolders(folderPath) {
   const folders = fs.readdirSync(folderPath);
 
-  for (let adv_folder_i = 0; adv_folder_i < folders.length; adv_folder_i++) {
-    const adv_folder = folders[adv_folder_i];
+  for (let adv_folder of folders) {
     const adv_name = adv_folder;
     const currentADVFolderPath = path.join(folderPath, adv_folder);
     if (!fs.lstatSync(currentADVFolderPath).isDirectory()) {
@@ -150,12 +150,7 @@ function readHTMLFilesInFolders(folderPath) {
 
     const slide_folders = fs.readdirSync(currentADVFolderPath);
 
-    for (
-      let slide_folder_i = 0;
-      slide_folder_i < slide_folders.length;
-      slide_folder_i++
-    ) {
-      const slide_folder = slide_folders[slide_folder_i];
+    for (let slide_folder of slide_folders) {
       const currentSlideFolderPath = path.join(
         currentADVFolderPath,
         slide_folder
@@ -243,8 +238,8 @@ function processFiles(
 function deleteContents(folderPath) {
   if (fs.existsSync(folderPath)) {
     const files = fs.readdirSync(folderPath);
-    for (let i = 0; i < files.length; i++) {
-      const filePath = path.join(folderPath, files[i]);
+    for (let file of files) {
+      const filePath = path.join(folderPath, file);
       if (fs.lstatSync(filePath).isDirectory()) {
         deleteContents(filePath); // Recursively delete contents of subdirectory
         fs.rmdirSync(filePath); // Remove empty directory

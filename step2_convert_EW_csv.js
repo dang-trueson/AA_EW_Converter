@@ -58,12 +58,7 @@ function convertCSVFiles(csv_files, index) {
 function generateEWCsvFile(fusionElements, popupElements, csv_files, index) {
   const ew_csv_file = csv_files[index]['ew_csv_file'];
   const ewElements = [];
-  for (
-    let fusionEle_i = 0;
-    fusionEle_i < fusionElements.length;
-    fusionEle_i++
-  ) {
-    const fusionElement = fusionElements[fusionEle_i];
+  for (let fusionElement of fusionElements) {
     const elementName = transferElementName(fusionElement.elementName);
     let elementId = fusionElement.id;
     let backgroundSrc = fusionElement.src || '';
@@ -207,11 +202,9 @@ function generateEWCsvFile(fusionElements, popupElements, csv_files, index) {
             );
           }
         }
-        const chapter =
-          (current_adv_slide_data && current_adv_slide_data['chapter']) || '';
-        const slide_name =
-          (current_adv_slide_data && current_adv_slide_data['slide-name']) ||
-          '';
+        const chapter = current_adv_slide_data?.['chapter'] || '';
+        const slide_name = current_adv_slide_data?.['slide-name'] || '';
+
         attributes = `v-goto.tap="{'animation':true,'disabled':false,'slide':'${slide_name}','chapter':'${chapter}'}"`;
       } else if (attributes.includes(`do="Remove state"`)) {
         attributes = `NOT APPLICABLE IN EWIZARD`;
@@ -297,8 +290,7 @@ function transferElementName(elementName) {
 function combineAndGenerateEWCsvStructure() {
   const folders = fs.readdirSync(AA_ADVsFolder);
   const csv_files = [];
-  for (let adv_folder_i = 0; adv_folder_i < folders.length; adv_folder_i++) {
-    const adv_folder = folders[adv_folder_i];
+  for (let adv_folder of folders) {
     const currentADVFolderPath = path.join(AA_ADVsFolder, adv_folder);
     if (!fs.lstatSync(currentADVFolderPath).isDirectory()) {
       continue;
@@ -314,12 +306,7 @@ function combineAndGenerateEWCsvStructure() {
 
     const slide_folders = fs.readdirSync(currentADVFolderPath);
 
-    for (
-      let slide_folder_i = 0;
-      slide_folder_i < slide_folders.length;
-      slide_folder_i++
-    ) {
-      const slide_folder = slide_folders[slide_folder_i];
+    for (let slide_folder of slide_folders) {
       const currentSlideFolderPath = path.join(
         currentADVFolderPath,
         slide_folder
@@ -373,8 +360,8 @@ function combineAndGenerateEWCsvStructure() {
 function deleteContents(folderPath) {
   if (fs.existsSync(folderPath)) {
     const files = fs.readdirSync(folderPath);
-    for (let i = 0; i < files.length; i++) {
-      const filePath = path.join(folderPath, files[i]);
+    for (let file of files) {
+      const filePath = path.join(folderPath, file);
       if (fs.lstatSync(filePath).isDirectory()) {
         deleteContents(filePath); // Recursively delete contents of subdirectory
         fs.rmdirSync(filePath); // Remove empty directory
@@ -394,8 +381,7 @@ function readADVStructureFile() {
       advSlides.push(row);
     })
     .on('end', () => {
-      for (let advSlide_i = 0; advSlide_i < advSlides.length; advSlide_i++) {
-        const adv_slide_row = advSlides[advSlide_i];
+      for (let adv_slide_row of advSlides) {
         const adv_slide_data = {
           'adv-folder': adv_slide_row['ADV-name'],
           'slide-folder': adv_slide_row['Slide-name'],
@@ -410,6 +396,7 @@ function readADVStructureFile() {
         };
         adv_slides_data.push(adv_slide_data);
       }
+      // TODO check
       combineAndGenerateEWCsvStructure(
         AA_csvStructureFolder,
         EW_csvStructureFolder
